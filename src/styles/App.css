@@ -1,0 +1,72 @@
+/* App specific styles */
+.App {
+    text-align: center;
+  }
+  
+  /* Main Layout */
+  .main-layout {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Header Styles */
+  .main-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .main-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .main-title:hover {
+    transform: scale(1.1);
+  }
+  
+  .subtitle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.875rem;
+    font-weight: bold;
+    color: #fde047;
+  }
+  
+  .cake-icon {
+    animation: spin 1s linear infinite;
+  }
+  
+  .cake-icon-reverse {
+    animation: spin 1s linear infinite reverse;
+  }
+  
+  /* Content Grid */
+  .content-grid {
+    display: grid;
+    gap: 2rem;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+  
+  /* Responsive title sizing */
+  @media (min-width: 768px) {
+    .main-title {
+      font-size: 6rem;
+    }
+    
+    .subtitle-container {
+      font-size: 2.25rem;
+    }
+    
+    .content-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }

@@ -1,0 +1,125 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    line-height: 1.6;
+  }
+  
+  /* Container and Layout */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  
+  .grid {
+    display: grid;
+    gap: 2rem;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 768px) {
+    .md-grid-cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* Utility Classes */
+  .text-center {
+    text-align: center;
+  }
+  
+  .flex {
+    display: flex;
+  }
+  
+  .flex-col {
+    flex-direction: column;
+  }
+  
+  .items-center {
+    align-items: center;
+  }
+  
+  .justify-center {
+    justify-content: center;
+  }
+  
+  .gap-1 { gap: 0.25rem; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-3 { gap: 0.75rem; }
+  .gap-4 { gap: 1rem; }
+  .gap-6 { gap: 1.5rem; }
+  .gap-8 { gap: 2rem; }
+  
+  /* Spacing */
+  .p-2 { padding: 0.5rem; }
+  .p-3 { padding: 0.75rem; }
+  .p-4 { padding: 1rem; }
+  .p-6 { padding: 1.5rem; }
+  .p-8 { padding: 2rem; }
+  
+  .px-4 { padding-left: 1rem; padding-right: 1rem; }
+  .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+  .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+  
+  .m-0 { margin: 0; }
+  .mb-2 { margin-bottom: 0.5rem; }
+  .mb-4 { margin-bottom: 1rem; }
+  .mb-6 { margin-bottom: 1.5rem; }
+  .mb-8 { margin-bottom: 2rem; }
+  .mb-12 { margin-bottom: 3rem; }
+  .mt-6 { margin-top: 1.5rem; }
+  .mt-8 { margin-top: 2rem; }
+  .mt-12 { margin-top: 3rem; }
+  
+  /* Positioning */
+  .relative { position: relative; }
+  .absolute { position: absolute; }
+  .fixed { position: fixed; }
+  
+  .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+  .top-10 { top: 2.5rem; }
+  .top-20 { top: 5rem; }
+  .top-40 { top: 10rem; }
+  .left-10 { left: 2.5rem; }
+  .left-20 { left: 5rem; }
+  .right-20 { right: 5rem; }
+  .bottom-20 { bottom: 5rem; }
+  
+  /* Z-index */
+  .z-10 { z-index: 10; }
+  .z-20 { z-index: 20; }
+  
+  /* Overflow */
+  .overflow-hidden { overflow: hidden; }
+  .overflow-y-auto { overflow-y: auto; }
+  
+  /* Sizes */
+  .w-2 { width: 0.5rem; }
+  .w-full { width: 100%; }
+  .h-2 { height: 0.5rem; }
+  .min-h-screen { min-height: 100vh; }
+  .max-h-32 { max-height: 8rem; }
+  .max-w-2xl { max-width: 42rem; }
+  .max-w-6xl { max-width: 72rem; }
+  
+  /* Flexbox utilities */
+  .flex-shrink-0 { flex-shrink: 0; }
+  
+  /* Pointer events */
+  .pointer-events-none { pointer-events: none; }

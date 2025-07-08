@@ -123,14 +123,14 @@ def send_notification_email(new_guest_name, all_guests):
         return
     
     try:
-        subject = f"🎉 New Party RSVP: {new_guest_name}"
+        subject = f"🎉 Darius Birthday: {new_guest_name}"
         
         # Create HTML email content
         html_body = f"""
         <html>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
-                <h1>🎉 New Party RSVP!</h1>
+                <h1>🎉 Darius Birthday!</h1>
                 <h2>{new_guest_name} just joined the party!</h2>
             </div>
             

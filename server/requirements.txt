@@ -1,0 +1,15 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-CORS==4.0.0
+Flask-Migrate==4.0.5
+python-dotenv==1.0.0
+marshmallow==3.20.1
+Flask-Marshmallow==0.15.0
+marshmallow-sqlalchemy==0.29.0
+Werkzeug==2.3.7
+email-validator==2.0.0
+python-dateutil==2.8.2
+gunicorn==21.2.0
+bleach==6.0.0
+bcrypt==4.0.1
+PyJWT==2.8.0

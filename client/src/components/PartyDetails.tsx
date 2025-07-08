@@ -13,7 +13,7 @@ export const PartyDetails: React.FC = () => (
       <div className="flex items-center gap-4 text-lg">
         <Calendar className="text-blue-500 flex-shrink-0" size={28} />
         <div>
-          <div className="font-bold text-gray-800">Sunday, July 20th</div>
+          <div className="font-bold text-gray-800">Saturday, July 27th</div>
           <div className="text-gray-600">Don't miss the fun!</div>
         </div>
       </div>

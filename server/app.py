@@ -160,7 +160,7 @@ def send_notification_email(new_guest_name, all_guests):
                 <div style="margin-top: 30px; padding: 15px; background-color: #e8f4f8; border-radius: 8px;">
                     <p style="margin: 0; color: #0c63e4;">
                         <strong>🎊 Party Details:</strong><br>
-                        📅 July 27th, 2024 at 5:00 PM<br>
+                        📅 July 26th, 2024 at 5:00 PM<br>
                         📍 123 Party Street, Fun City<br>
                         👥 Total Attendees: """ + str(len(all_guests)) + """
                     </p>

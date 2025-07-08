@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (IMPORTANT: Contains email passwords!)
+.env
+server/.env
+
+# Python
+server/venv/
+server/__pycache__/
+*.pyc
+*.pyo
+
+# Database files
+server/*.db
+server/birthday_party.db
+
+# Backend logs
+server/logs/

@@ -1,11 +1,13 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
 from datetime import datetime, timezone
 import secrets
 import string
 import os
 from dotenv import load_dotenv
+import threading
 
 load_dotenv()
 
@@ -17,8 +19,17 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///birthday_party.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Email configuration
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
 # Initialize extensions
 db = SQLAlchemy(app)
+mail = Mail(app)
 CORS(app, origins=['http://localhost:5173'])
 
 # Models
@@ -36,11 +47,11 @@ class Party(db.Model):
     rsvp_deadline = db.Column(db.DateTime, default=lambda: datetime(2024, 7, 25, 23, 59))
     contact_email = db.Column(db.String(120), default="party@example.com")
     contact_phone = db.Column(db.String(20), default="+1 (555) 123-4567")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     @property
     def is_rsvp_open(self):
-        return self.rsvp_deadline > datetime.now(datetime.timezone.utc) and self.is_active
+        return self.rsvp_deadline > datetime.now(timezone.utc) and self.is_active
 
     def to_dict(self):
         return {
@@ -70,7 +81,7 @@ class RSVP(db.Model):
     dietary_restrictions = db.Column(db.Text)
     message = db.Column(db.Text)
     confirmation_code = db.Column(db.String(20), unique=True)
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    submitted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     party = db.relationship('Party', backref='rsvps')
     
@@ -93,13 +104,121 @@ class RSVP(db.Model):
             'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None
         }
 
+# Email functions
+def send_async_email(app, msg):
+    """Send email asynchronously"""
+    with app.app_context():
+        try:
+            mail.send(msg)
+            print(f"✅ Email sent successfully!")
+        except Exception as e:
+            print(f"❌ Failed to send email: {e}")
+
+def send_notification_email(new_guest_name, all_guests):
+    """Send notification email with updated guest list"""
+    notification_email = os.getenv('NOTIFICATION_EMAIL')
+    
+    if not notification_email:
+        print("⚠️ No notification email configured")
+        return
+    
+    try:
+        subject = f"🎉 New Party RSVP: {new_guest_name}"
+        
+        # Create HTML email content
+        html_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+                <h1>🎉 New Party RSVP!</h1>
+                <h2>{new_guest_name} just joined the party!</h2>
+            </div>
+            
+            <div style="padding: 20px;">
+                <h3 style="color: #667eea;">📝 Updated Guest List ({len(all_guests)} attendees):</h3>
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <ul style="list-style: none; padding: 0;">
+        """
+        
+        for i, guest in enumerate(all_guests, 1):
+            guest_name = guest.get('name', 'Unknown')
+            submitted_time = guest.get('submitted_at', '')
+            html_body += f"""
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                            <span style="font-weight: bold; color: #667eea;">#{i}</span> 
+                            🎈 {guest_name}
+                            <span style="color: #6c757d; font-size: 0.9em; margin-left: 10px;">
+                                ({submitted_time[:10] if submitted_time else 'Unknown date'})
+                            </span>
+                        </li>
+            """
+        
+        html_body += """
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 15px; background-color: #e8f4f8; border-radius: 8px;">
+                    <p style="margin: 0; color: #0c63e4;">
+                        <strong>🎊 Party Details:</strong><br>
+                        📅 July 27th, 2024 at 7:00 PM<br>
+                        📍 123 Party Street, Fun City<br>
+                        👥 Total Attendees: """ + str(len(all_guests)) + """
+                    </p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; color: #6c757d; font-size: 0.9em;">
+                <p>This notification was sent automatically when someone RSVPed to Darius' Birthday Party.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Create plain text version
+        text_body = f"""
+        🎉 New Party RSVP!
+        
+        {new_guest_name} just joined the party!
+        
+        📝 Updated Guest List ({len(all_guests)} attendees):
+        """
+        
+        for i, guest in enumerate(all_guests, 1):
+            guest_name = guest.get('name', 'Unknown')
+            text_body += f"\n#{i} 🎈 {guest_name}"
+        
+        text_body += f"""
+        
+        🎊 Party Details:
+        📅 July 27th, 2024 at 7:00 PM
+        📍 123 Party Street, Fun City
+        👥 Total Attendees: {len(all_guests)}
+        
+        This notification was sent automatically when someone RSVPed to Darius' Birthday Party.
+        """
+        
+        msg = Message(
+            subject=subject,
+            recipients=[notification_email],
+            body=text_body,
+            html=html_body
+        )
+        
+        # Send email in background thread
+        thread = threading.Thread(target=send_async_email, args=(app, msg))
+        thread.start()
+        
+    except Exception as e:
+        print(f"❌ Error creating notification email: {e}")
+
 # Routes
 @app.route('/api/health')
 def health_check():
     return jsonify({
         'status': 'OK',
         'message': 'Birthday Party API is running',
-        'version': '1.0.0'
+        'version': '1.0.0',
+        'email_configured': bool(os.getenv('MAIL_USERNAME'))
     })
 
 @app.route('/api/party', methods=['GET'])
@@ -165,6 +284,12 @@ def submit_rsvp():
         db.session.add(rsvp)
         db.session.commit()
         
+        # Send notification email with updated guest list
+        if data['attending'] == 'yes':
+            all_guests = RSVP.query.filter_by(party_id=party.id, attending='yes').order_by(RSVP.submitted_at.desc()).all()
+            guest_list = [guest.to_dict() for guest in all_guests]
+            send_notification_email(data['name'], guest_list)
+        
         return jsonify({
             'message': 'RSVP submitted successfully',
             'confirmation_code': rsvp.confirmation_code
@@ -215,4 +340,5 @@ with app.app_context():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     print(f"🚀 Starting Flask server on port {port}")
+    print(f"📧 Email configured: {bool(os.getenv('MAIL_USERNAME'))}")
     app.run(host='0.0.0.0', port=port, debug=True)

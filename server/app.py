@@ -37,16 +37,16 @@ class Party(db.Model):
     __tablename__ = 'parties'
     
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), default="Darius' Birthday Party")
-    description = db.Column(db.Text, default="Join us for an amazing birthday celebration!")
+    title = db.Column(db.String(200), default="Festa de Aniversário do Darius")
+    description = db.Column(db.Text, default="Junte-se a nós para uma celebração incrível de aniversário!")
     date = db.Column(db.DateTime, default=lambda: datetime(2024, 7, 27, 19, 0))
-    time = db.Column(db.String(20), default="7:00 PM")
-    address = db.Column(db.String(500), default="123 Party Street, Fun City")
+    time = db.Column(db.String(20), default="19:00")
+    address = db.Column(db.String(500), default="Rua da Festa 123, Cidade Divertida")
     max_guests = db.Column(db.Integer, default=50)
     is_active = db.Column(db.Boolean, default=True)
     rsvp_deadline = db.Column(db.DateTime, default=lambda: datetime(2024, 7, 25, 23, 59))
-    contact_email = db.Column(db.String(120), default="party@example.com")
-    contact_phone = db.Column(db.String(20), default="+1 (555) 123-4567")
+    contact_email = db.Column(db.String(120), default="festa@exemplo.com")
+    contact_phone = db.Column(db.String(20), default="+351 123 456 789")
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     @property
@@ -110,45 +110,45 @@ def send_async_email(app, msg):
     with app.app_context():
         try:
             mail.send(msg)
-            print(f"✅ Email sent successfully!")
+            print(f"✅ Email enviado com sucesso!")
         except Exception as e:
-            print(f"❌ Failed to send email: {e}")
+            print(f"❌ Falha ao enviar email: {e}")
 
 def send_notification_email(new_guest_name, all_guests):
     """Send notification email with updated guest list"""
     notification_email = os.getenv('NOTIFICATION_EMAIL')
     
     if not notification_email:
-        print("⚠️ No notification email configured")
+        print("⚠️ Email de notificação não configurado")
         return
     
     try:
-        subject = f"🎉 Darius Birthday: {new_guest_name}"
+        subject = f"🎉 Novo Convidado: {new_guest_name} - Festa do Darius"
         
         # Create HTML email content
         html_body = f"""
         <html>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
-                <h1>🎉 Darius Birthday!</h1>
-                <h2>{new_guest_name} just joined the party!</h2>
+                <h1>🎉 Festa de Aniversário do Darius!</h1>
+                <h2>{new_guest_name} confirmou presença!</h2>
             </div>
             
             <div style="padding: 20px;">
-                <h3 style="color: #667eea;">📝 Updated Guest List ({len(all_guests)} attendees):</h3>
+                <h3 style="color: #667eea;">📝 Lista Atualizada de Convidados ({len(all_guests)} pessoas):</h3>
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
                     <ul style="list-style: none; padding: 0;">
         """
         
         for i, guest in enumerate(all_guests, 1):
-            guest_name = guest.get('name', 'Unknown')
+            guest_name = guest.get('name', 'Desconhecido')
             submitted_time = guest.get('submitted_at', '')
             html_body += f"""
                         <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
                             <span style="font-weight: bold; color: #667eea;">#{i}</span> 
                             🎈 {guest_name}
                             <span style="color: #6c757d; font-size: 0.9em; margin-left: 10px;">
-                                ({submitted_time[:10] if submitted_time else 'Unknown date'})
+                                ({submitted_time[:10] if submitted_time else 'Data desconhecida'})
                             </span>
                         </li>
             """
@@ -159,16 +159,16 @@ def send_notification_email(new_guest_name, all_guests):
                 
                 <div style="margin-top: 30px; padding: 15px; background-color: #e8f4f8; border-radius: 8px;">
                     <p style="margin: 0; color: #0c63e4;">
-                        <strong>🎊 Party Details:</strong><br>
-                        📅 July 26th, 2024 at 5:00 PM<br>
-                        📍 123 Party Street, Fun City<br>
-                        👥 Total Attendees: """ + str(len(all_guests)) + """
+                        <strong>🎊 Detalhes da Festa:</strong><br>
+                        📅 27 de Julho, 2024 às 19:00<br>
+                        📍 Nossa Casa - O melhor lugar para a festa!<br>
+                        👥 Total de Convidados: """ + str(len(all_guests)) + """
                     </p>
                 </div>
             </div>
             
             <div style="text-align: center; padding: 20px; color: #6c757d; font-size: 0.9em;">
-                <p>This notification was sent automatically when someone RSVPed to Darius' Birthday Party.</p>
+                <p>Esta notificação foi enviada automaticamente quando alguém confirmou presença na Festa de Aniversário do Darius.</p>
             </div>
         </body>
         </html>
@@ -176,25 +176,25 @@ def send_notification_email(new_guest_name, all_guests):
         
         # Create plain text version
         text_body = f"""
-        🎉 New Party RSVP!
+        🎉 Nova Confirmação de Presença!
         
-        {new_guest_name} just joined the party!
+        {new_guest_name} confirmou presença na festa!
         
-        📝 Updated Guest List ({len(all_guests)} attendees):
+        📝 Lista Atualizada de Convidados ({len(all_guests)} pessoas):
         """
         
         for i, guest in enumerate(all_guests, 1):
-            guest_name = guest.get('name', 'Unknown')
+            guest_name = guest.get('name', 'Desconhecido')
             text_body += f"\n#{i} 🎈 {guest_name}"
         
         text_body += f"""
         
-        🎊 Party Details:
-        📅 July 27th, 2024 at 7:00 PM
-        📍 123 Party Street, Fun City
-        👥 Total Attendees: {len(all_guests)}
+        🎊 Detalhes da Festa:
+        📅 27 de Julho, 2024 às 19:00
+        📍 Nossa Casa - O melhor lugar para a festa!
+        👥 Total de Convidados: {len(all_guests)}
         
-        This notification was sent automatically when someone RSVPed to Darius' Birthday Party.
+        Esta notificação foi enviada automaticamente quando alguém confirmou presença na Festa de Aniversário do Darius.
         """
         
         msg = Message(
@@ -209,14 +209,14 @@ def send_notification_email(new_guest_name, all_guests):
         thread.start()
         
     except Exception as e:
-        print(f"❌ Error creating notification email: {e}")
+        print(f"❌ Erro ao criar email de notificação: {e}")
 
 # Routes
 @app.route('/api/health')
 def health_check():
     return jsonify({
         'status': 'OK',
-        'message': 'Birthday Party API is running',
+        'message': 'API da Festa de Aniversário está funcionando',
         'version': '1.0.0',
         'email_configured': bool(os.getenv('MAIL_USERNAME'))
     })
@@ -234,7 +234,7 @@ def get_party():
 def get_party_stats():
     party = Party.query.filter_by(is_active=True).first()
     if not party:
-        return jsonify({'error': 'Party not found'}), 404
+        return jsonify({'error': 'Festa não encontrada'}), 404
     
     total_rsvps = RSVP.query.filter_by(party_id=party.id).count()
     attending = RSVP.query.filter_by(party_id=party.id, attending='yes').all()
@@ -255,17 +255,17 @@ def submit_rsvp():
         
         # Validate required fields
         if not all(k in data for k in ['name', 'email', 'attending', 'number_of_guests']):
-            return jsonify({'error': 'Missing required fields'}), 400
+            return jsonify({'error': 'Campos obrigatórios em falta'}), 400
         
         party = Party.query.filter_by(is_active=True).first()
         if not party:
-            return jsonify({'error': 'Party not found'}), 404
+            return jsonify({'error': 'Festa não encontrada'}), 404
         
         # Check if already exists
         existing = RSVP.query.filter_by(email=data['email'], party_id=party.id).first()
         if existing:
             return jsonify({
-                'error': 'You have already submitted an RSVP',
+                'error': 'Você já confirmou presença para esta festa',
                 'confirmation_code': existing.confirmation_code
             }), 400
         
@@ -291,19 +291,19 @@ def submit_rsvp():
             send_notification_email(data['name'], guest_list)
         
         return jsonify({
-            'message': 'RSVP submitted successfully',
+            'message': 'Presença confirmada com sucesso',
             'confirmation_code': rsvp.confirmation_code
         }), 201
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': f'Failed to submit RSVP: {str(e)}'}), 500
+        return jsonify({'error': f'Falha ao confirmar presença: {str(e)}'}), 500
 
 @app.route('/api/rsvp/<confirmation_code>', methods=['GET'])
 def get_rsvp(confirmation_code):
     rsvp = RSVP.query.filter_by(confirmation_code=confirmation_code).first()
     if not rsvp:
-        return jsonify({'error': 'RSVP not found'}), 404
+        return jsonify({'error': 'Confirmação não encontrada'}), 404
     return jsonify({
         'rsvp': rsvp.to_dict(),
         'party': rsvp.party.to_dict()
@@ -313,7 +313,7 @@ def get_rsvp(confirmation_code):
 def get_guests():
     party = Party.query.filter_by(is_active=True).first()
     if not party:
-        return jsonify({'error': 'Party not found'}), 404
+        return jsonify({'error': 'Festa não encontrada'}), 404
     
     guests = RSVP.query.filter_by(party_id=party.id).order_by(RSVP.submitted_at.desc()).all()
     return jsonify([guest.to_dict() for guest in guests])
@@ -321,12 +321,12 @@ def get_guests():
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):
-    return jsonify({'error': 'Route not found'}), 404
+    return jsonify({'error': 'Rota não encontrada'}), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()
-    return jsonify({'error': 'Internal server error'}), 500
+    return jsonify({'error': 'Erro interno do servidor'}), 500
 
 # Initialize database
 with app.app_context():
@@ -335,10 +335,10 @@ with app.app_context():
         default_party = Party()
         db.session.add(default_party)
         db.session.commit()
-        print("✅ Default party created!")
+        print("✅ Festa padrão criada!")
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
-    print(f"🚀 Starting Flask server on port {port}")
-    print(f"📧 Email configured: {bool(os.getenv('MAIL_USERNAME'))}")
+    print(f"🚀 Iniciando servidor Flask na porta {port}")
+    print(f"📧 Email configurado: {bool(os.getenv('MAIL_USERNAME'))}")
     app.run(host='0.0.0.0', port=port, debug=True)

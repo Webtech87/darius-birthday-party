@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import '../styles/components.css';
 
 interface Guest {
@@ -13,17 +14,20 @@ interface Guest {
 }
 
 interface RSVPFormProps {
+  guests: string[];
+  onAddGuest: (name: string) => void;
   onGuestAdded?: () => void;
 }
 
-export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
+export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestAdded }) => {
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [guests, setGuests] = useState<Guest[]>([]);
+  const [apiGuests, setApiGuests] = useState<Guest[]>([]);
   const [confirmationCode, setConfirmationCode] = useState('');
+  const { t, language } = useLanguage();
 
   // Fetch current guests list
   const fetchGuests = async () => {
@@ -31,7 +35,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
       const response = await fetch('http://localhost:5000/api/guests');
       if (response.ok) {
         const guestData = await response.json();
-        setGuests(guestData.filter((guest: Guest) => guest.attending === 'yes'));
+        setApiGuests(guestData.filter((guest: Guest) => guest.attending === 'yes'));
       }
     } catch (error) {
       console.error('Error fetching guests:', error);
@@ -45,7 +49,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
 
   const handleSubmit = async () => {
     if (!guestName.trim() || !guestEmail.trim()) {
-      setError('Please enter both name and email');
+      setError(t.errorNameEmail);
       return;
     }
 
@@ -63,7 +67,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
           email: guestEmail.trim(),
           attending: 'yes',
           number_of_guests: 1,
-          message: `Excited to join the party!`
+          message: language === 'pt' ? `Animado para participar da festa!` : `Excited to join the party!`
         }),
       });
 
@@ -79,7 +83,12 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
         // Refresh the guests list
         await fetchGuests();
         
-        // Call parent callback if provided
+        // Call parent callback with the new guest name
+        if (onAddGuest) {
+          onAddGuest(guestName.trim());
+        }
+        
+        // Call additional callback if provided
         if (onGuestAdded) {
           onGuestAdded();
         }
@@ -91,10 +100,15 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
         }, 5000);
       } else {
         // Handle errors
-        setError(result.error || 'Failed to submit RSVP');
+        if (result.error === 'You have already submitted an RSVP' || 
+            result.error === 'Você já confirmou presença para esta festa') {
+          setError(t.errorAlreadyRsvped);
+        } else {
+          setError(result.error || t.errorSubmit);
+        }
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError(t.errorNetwork);
       console.error('Error submitting RSVP:', error);
     } finally {
       setIsLoading(false);
@@ -111,13 +125,13 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
     <div className="card p-8">
       <h2 className="text-4xl font-bold text-purple-600 mb-6 flex items-center gap-3">
         <Users className="text-pink-500" />
-        Join the Party!
+        {t.joinParty}
       </h2>
 
       <div className="flex flex-col gap-6">
         <div>
           <label className="text-lg font-bold text-gray-700 mb-2" style={{display: 'block'}}>
-            Your Name:
+            {t.yourName}
           </label>
           <input
             type="text"
@@ -125,14 +139,14 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
             onChange={(e) => setGuestName(e.target.value)}
             onKeyPress={handleKeyPress}
             className="input-primary"
-            placeholder="Enter your name here..."
+            placeholder={t.namePlaceholder}
             disabled={isLoading}
           />
         </div>
 
         <div>
           <label className="text-lg font-bold text-gray-700 mb-2" style={{display: 'block'}}>
-            Your Email:
+            {t.yourEmail}
           </label>
           <input
             type="email"
@@ -140,7 +154,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
             onChange={(e) => setGuestEmail(e.target.value)}
             onKeyPress={handleKeyPress}
             className="input-primary"
-            placeholder="Enter your email here..."
+            placeholder={t.emailPlaceholder}
             disabled={isLoading}
           />
         </div>
@@ -150,7 +164,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
           className="btn-primary"
           disabled={isLoading}
         >
-          {isLoading ? '⏳ Submitting...' : '🎉 Yes, I\'m Coming! 🎉'}
+          {isLoading ? t.submitting : t.submitButton}
         </button>
       </div>
 
@@ -167,26 +181,36 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ onGuestAdded }) => {
       {isSubmitted && (
         <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg">
           <div className="text-green-700 font-bold text-lg">
-            🎊 Awesome! Can't wait to see you there! 🎊
+            {t.successMessage}
           </div>
           {confirmationCode && (
             <div className="text-green-600 mt-2">
-              Your confirmation code: <strong>{confirmationCode}</strong>
+              {t.confirmationCode} <strong>{confirmationCode}</strong>
             </div>
           )}
         </div>
       )}
 
       {/* Guest List */}
-      {guests.length > 0 && (
+      {(guests.length > 0 || apiGuests.length > 0) && (
         <div className="mt-8">
           <h3 className="text-xl font-bold text-purple-600 mb-4">
-            🌟 Party Heroes ({guests.length}):
+            {t.partyHeroes} ({guests.length + apiGuests.length}):
           </h3>
           <div className="max-h-32 overflow-y-auto flex flex-col gap-2">
+            {/* Display guests from props first */}
             {guests.map((guest, index) => (
               <div
-                key={guest.id || index}
+                key={`prop-guest-${index}`}
+                className="guest-item"
+              >
+                🎈 {guest}
+              </div>
+            ))}
+            {/* Then display API guests */}
+            {apiGuests.map((guest, index) => (
+              <div
+                key={guest.id || `api-guest-${index}`}
                 className="guest-item"
               >
                 🎈 {guest.name}

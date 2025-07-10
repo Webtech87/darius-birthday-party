@@ -4,14 +4,17 @@ import { ConfettiPiece } from './components/ConfettiPiece';
 import { FloatingIcon } from './components/FloatingIcon';
 import { PartyDetails } from './components/PartyDetails';
 import { RSVPForm } from './components/RSVPForm';
+import { LanguageToggle } from './components/LanguageToggle';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import './styles/App.css';
 
-function App() {
+function AppContent() {
   const [guests, setGuests] = useState<string[]>([]);
   const [showConfetti, setShowConfetti] = useState(true);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [musicReady, setMusicReady] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 5000);
@@ -91,6 +94,9 @@ function App() {
 
   return (
     <div className="main-layout">
+      {/* Language Toggle */}
+      <LanguageToggle />
+
       {/* Background Music - Hidden Audio Element */}
       <audio
         ref={audioRef}
@@ -105,7 +111,7 @@ function App() {
         <source src="/birthday-music.mp3" type="audio/mpeg" />
         <source src="/birthday-music.ogg" type="audio/ogg" />
         <source src="/birthday-music.wav" type="audio/wav" />
-        Your browser does not support the audio element.
+        {t.audioNotSupported}
       </audio>
 
       {/* Subtle Music Control Button (appears only when music is ready) */}
@@ -113,39 +119,39 @@ function App() {
         <button
           onClick={toggleMusic}
           className="music-control-btn"
-          title={isMusicPlaying ? "Pause music" : "Play music"}
+          title={isMusicPlaying ? t.musicPause : t.musicPlay}
           style={{
             position: 'fixed',
-            top: '20px',
-            right: '20px',
+            top: '10px',
+            right: '10px',
             zIndex: 1000,
-            background: 'rgba(255, 255, 255, 0.8)',
+            background: 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(10px)',
             border: 'none',
             borderRadius: '50%',
-            width: '50px',
-            height: '50px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
             transition: 'all 0.3s ease',
-            opacity: 0.7
+            opacity: 0.8
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = '1';
             e.currentTarget.style.transform = 'scale(1.1)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '0.7';
+            e.currentTarget.style.opacity = '0.8';
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >
           {isMusicPlaying ? (
-            <Volume2 className="text-purple-600" size={20} />
+            <Volume2 className="text-purple-600" size={18} />
           ) : (
-            <VolumeX className="text-gray-500" size={20} />
+            <VolumeX className="text-gray-500" size={18} />
           )}
         </button>
       )}
@@ -174,11 +180,11 @@ function App() {
         <div className="main-header">
           <div>
             <h1 className="main-title">
-              🎉 DARIUS IS 4! 🎉
+              {t.mainTitle}
             </h1>
             <div className="subtitle-container">
               <Cake className="cake-icon" />
-              <span>Birthday Party!</span>
+            
               <Cake className="cake-icon-reverse" />
             </div>
           </div>
@@ -194,13 +200,10 @@ function App() {
         <div className="text-center mt-12">
           <div className="message-box">
             <h3 className="text-3xl font-bold text-purple-600 mb-4">
-              🎂 Special Birthday Message 🎂
+              {t.specialMessageTitle}
             </h3>
             <p className="text-lg text-gray-700 leading-relaxed">
-              Join us as we celebrate our amazing Darius turning 4! 
-              It's going to be an unforgettable day filled with laughter, 
-              games, delicious food, and so much fun. Bring your swimsuit, 
-              your appetite, and get ready to party! 
+              {t.specialMessage}
             </p>
             <div className="mt-6 text-2xl">
               🎈🎁🎪🎊🎉🎂🍰🎵
@@ -209,6 +212,14 @@ function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 

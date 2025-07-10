@@ -21,12 +21,14 @@ interface RSVPFormProps {
 
 export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestAdded }) => {
   const [guestName, setGuestName] = useState('');
-  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add submission guard
   const [error, setError] = useState('');
   const [apiGuests, setApiGuests] = useState<Guest[]>([]);
   const [confirmationCode, setConfirmationCode] = useState('');
+  const [showGuestList, setShowGuestList] = useState(false);
   const { t, language } = useLanguage();
 
   // Fetch current guests list
@@ -48,12 +50,18 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
   }, []);
 
   const handleSubmit = async () => {
-    if (!guestName.trim() || !guestEmail.trim()) {
-      setError(t.errorNameEmail);
+    // Prevent double submission
+    if (isSubmitting || isLoading) {
+      return;
+    }
+
+    if (!guestName.trim() || !guestPhone.trim()) {
+      setError(language === 'pt' ? 'Por favor, insira seu nome e telefone' : 'Please enter both name and phone');
       return;
     }
 
     setIsLoading(true);
+    setIsSubmitting(true); // Set submission guard
     setError('');
 
     try {
@@ -64,10 +72,11 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
         },
         body: JSON.stringify({
           name: guestName.trim(),
-          email: guestEmail.trim(),
+          email: `${guestPhone.replace(/\s+/g, '')}@phone.temp`, // Generate a temporary email from phone
+          phone: guestPhone.trim(),
           attending: 'yes',
           number_of_guests: 1,
-          message: language === 'pt' ? `Animado para participar da festa!` : `Excited to join the party!`
+          message: language === 'pt' ? 'Animado para participar da festa!' : 'Excited to join the party!'
         }),
       });
 
@@ -75,17 +84,19 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
 
       if (response.ok) {
         // Success
+        const submittedName = guestName.trim(); // Store name before clearing
         setConfirmationCode(result.confirmation_code);
         setGuestName('');
-        setGuestEmail('');
+        setGuestPhone('');
         setIsSubmitted(true);
+        setShowGuestList(true); // Show guest list after successful submission
         
         // Refresh the guests list
         await fetchGuests();
         
         // Call parent callback with the new guest name
         if (onAddGuest) {
-          onAddGuest(guestName.trim());
+          onAddGuest(submittedName);
         }
         
         // Call additional callback if provided
@@ -93,25 +104,30 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
           onGuestAdded();
         }
 
-        // Hide success message after 5 seconds
+        // Hide success message after 10 seconds, but keep guest list visible
         setTimeout(() => {
           setIsSubmitted(false);
           setConfirmationCode('');
-        }, 5000);
+          // Keep showGuestList = true so the list remains visible
+        }, 10000);
       } else {
         // Handle errors
         if (result.error === 'You have already submitted an RSVP' || 
             result.error === 'Você já confirmou presença para esta festa') {
-          setError(t.errorAlreadyRsvped);
+          setError(language === 'pt' ? 'Você já confirmou presença para esta festa' : 'You have already confirmed attendance for this party');
         } else {
-          setError(result.error || t.errorSubmit);
+          setError(result.error || (language === 'pt' ? 'Falha ao confirmar presença' : 'Failed to confirm attendance'));
         }
       }
     } catch (error) {
-      setError(t.errorNetwork);
+      setError(language === 'pt' ? 'Erro de conexão. Tente novamente.' : 'Network error. Please try again.');
       console.error('Error submitting RSVP:', error);
     } finally {
       setIsLoading(false);
+      // Reset submission guard after a short delay to prevent rapid clicking
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 1000);
     }
   };
 
@@ -146,15 +162,15 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
 
         <div>
           <label className="text-lg font-bold text-gray-700 mb-2" style={{display: 'block'}}>
-            {t.yourEmail}
+            {language === 'pt' ? 'Seu Telefone:' : 'Your Phone:'}
           </label>
           <input
-            type="email"
-            value={guestEmail}
-            onChange={(e) => setGuestEmail(e.target.value)}
+            type="tel"
+            value={guestPhone}
+            onChange={(e) => setGuestPhone(e.target.value)}
             onKeyPress={handleKeyPress}
             className="input-primary"
-            placeholder={t.emailPlaceholder}
+            placeholder={language === 'pt' ? 'Digite seu telefone aqui...' : 'Enter your phone here...'}
             disabled={isLoading}
           />
         </div>
@@ -162,7 +178,11 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
         <button
           onClick={handleSubmit}
           className="btn-primary"
-          disabled={isLoading}
+          disabled={isLoading || isSubmitting}
+          style={{
+            opacity: (isLoading || isSubmitting) ? 0.7 : 1,
+            cursor: (isLoading || isSubmitting) ? 'not-allowed' : 'pointer'
+          }}
         >
           {isLoading ? t.submitting : t.submitButton}
         </button>
@@ -191,23 +211,14 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
         </div>
       )}
 
-      {/* Guest List */}
-      {(guests.length > 0 || apiGuests.length > 0) && (
+      {/* Guest List - Only show after successful submission */}
+      {showGuestList && apiGuests.length > 0 && (
         <div className="mt-8">
           <h3 className="text-xl font-bold text-purple-600 mb-4">
-            {t.partyHeroes} ({guests.length + apiGuests.length}):
+            {t.partyHeroes} ({apiGuests.length}):
           </h3>
           <div className="max-h-32 overflow-y-auto flex flex-col gap-2">
-            {/* Display guests from props first */}
-            {guests.map((guest, index) => (
-              <div
-                key={`prop-guest-${index}`}
-                className="guest-item"
-              >
-                🎈 {guest}
-              </div>
-            ))}
-            {/* Then display API guests */}
+            {/* Only display API guests - single source of truth */}
             {apiGuests.map((guest, index) => (
               <div
                 key={guest.id || `api-guest-${index}`}

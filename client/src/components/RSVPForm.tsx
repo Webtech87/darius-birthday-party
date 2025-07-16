@@ -88,7 +88,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/rsvp', {
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/rsvp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
     setIsClearingGuests(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/clear-guests', {
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/rsvp', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -130,7 +130,7 @@ function AppContent() {
     // This function is now handled by RSVPForm when submitting to backend
     // Refresh the guest list after new RSVP
     try {
-      const response = await fetch('http://localhost:5000/api/guests');
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/guests');
       const data = await response.json();
       setGuests(data.filter(guest => guest.attending === 'yes'));
     } catch (error) {
@@ -145,7 +145,7 @@ function AppContent() {
     if (!confirmClear) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/clear-guests', {
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/guests', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

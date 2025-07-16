@@ -1,14 +1,16 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail, Message
-from datetime import datetime, timezone
+import os
 import secrets
 import string
-import os
-from dotenv import load_dotenv
 import threading
+from datetime import datetime, timezone
 
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from flask_mail import Mail, Message
+from flask_sqlalchemy import SQLAlchemy
+
+# Load environment variables
 load_dotenv()
 
 # Create Flask app
@@ -39,9 +41,9 @@ class Party(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), default="Festa de Aniversário do Darius")
     description = db.Column(db.Text, default="Junte-se a nós para uma celebração incrível de aniversário!")
-    date = db.Column(db.DateTime, default=lambda: datetime(2024, 7, 27, 19, 0))
-    time = db.Column(db.String(20), default="19:00")
-    address = db.Column(db.String(500), default="Rua da Festa 123, Cidade Divertida")
+    date = db.Column(db.DateTime, default=lambda: datetime(2024, 7, 27, 17, 0))  # Updated to 17:00 (5 PM)
+    time = db.Column(db.String(20), default="17:00")  # Updated to 17:00
+    address = db.Column(db.String(500), default="Urbanização Quinta do Eucalipto nº4, 8005-227 Faro")  # Updated address
     max_guests = db.Column(db.Integer, default=50)
     is_active = db.Column(db.Boolean, default=True)
     rsvp_deadline = db.Column(db.DateTime, default=lambda: datetime(2024, 7, 25, 23, 59))
@@ -160,8 +162,8 @@ def send_notification_email(new_guest_name, all_guests):
                 <div style="margin-top: 30px; padding: 15px; background-color: #e8f4f8; border-radius: 8px;">
                     <p style="margin: 0; color: #0c63e4;">
                         <strong>🎊 Detalhes da Festa:</strong><br>
-                        📅 27 de Julho, 2024 às 19:00<br>
-                        📍 Nossa Casa - O melhor lugar para a festa!<br>
+                        📅 27 de Julho, 2024 às 17:00<br>
+                        📍 Urbanização Quinta do Eucalipto nº4, 8005-227 Faro<br>
                         👥 Total de Convidados: """ + str(len(all_guests)) + """
                     </p>
                 </div>
@@ -190,8 +192,8 @@ def send_notification_email(new_guest_name, all_guests):
         text_body += f"""
         
         🎊 Detalhes da Festa:
-        📅 27 de Julho, 2024 às 19:00
-        📍 Nossa Casa - O melhor lugar para a festa!
+        📅 27 de Julho, 2024 às 17:00
+        📍 Urbanização Quinta do Eucalipto nº4, 8005-227 Faro
         👥 Total de Convidados: {len(all_guests)}
         
         Esta notificação foi enviada automaticamente quando alguém confirmou presença na Festa de Aniversário do Darius.

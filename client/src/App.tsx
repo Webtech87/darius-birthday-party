@@ -33,7 +33,7 @@ function AppContent() {
   useEffect(() => {
     const fetchGuests = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/guests');
+        const response = await fetch('https://darius-birthday-party.onrender.com/api/guests');
         const data = await response.json();
         setGuests(data.filter(guest => guest.attending === 'yes'));
       } catch (error) {

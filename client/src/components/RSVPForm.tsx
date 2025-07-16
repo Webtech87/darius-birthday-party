@@ -43,7 +43,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
   // Fetch current guests list
   const fetchGuests = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/guests');
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/rsvp');
       if (response.ok) {
         const guestData = await response.json();
         const attendingGuests = guestData.filter((guest: Guest) => guest.attending === 'yes');

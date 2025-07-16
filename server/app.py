@@ -34,7 +34,9 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 CORS(app, origins=[
     'http://localhost:5173',  # Development
-    'https://darius-birthday-frontend.onrender.com'  # Production (update this once you know the frontend URL)
+    'https://darius-birthday-party-frontend.onrender.com',  # Render domain
+    'https://dariussantiago.eu',  # Your custom domain
+    'https://www.dariussantiago.eu'  # WWW version
 ])
 
 # Models

@@ -46,7 +46,7 @@ interface Translations {
 const translations: Record<Language, Translations> = {
   en: {
     // App.tsx
-    mainTitle: "🎉 Churrasquinho do Dede!",
+    mainTitle: "🎉 Churrasquinho do Dedé!",
     specialMessageTitle: "🎂 Special Birthday Message 🎂",
     specialMessage: "Join us as we celebrate our amazing Darius turning 4! It's going to be an unforgettable day filled with laughter, games, delicious food, and so much fun. Bring your swimsuit, your appetite, and get ready to party!",
     musicPause: "Pause music",
@@ -85,7 +85,7 @@ const translations: Record<Language, Translations> = {
   },
   pt: {
     // App.tsx
-    mainTitle: "🎉 Churrasquinho do Dede!",
+    mainTitle: "🎉 Churrasquinho do Dedé!",
     specialMessageTitle: "🎂 Mensagem Especial de Aniversário 🎂",
     specialMessage: "Junte-se a nós para celebrar o nosso incrível Darius que está fazendo 4 anos! Vai ser um dia inesquecível cheio de risos, jogos, comida deliciosa e muita diversão. Traga o seu fato de banho, o seu apetite e prepare-se para a festa!",
     musicPause: "Pausar música",

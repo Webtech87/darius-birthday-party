@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Star, Gift, Cake, Music, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Star, Gift, Music, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { ConfettiPiece } from './components/ConfettiPiece';
 import { FloatingIcon } from './components/FloatingIcon';
 import { PartyDetails } from './components/PartyDetails';
@@ -8,8 +8,18 @@ import { LanguageToggle } from './components/LanguageToggle';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import './styles/App.css';
 
+interface Guest {
+  id: number;
+  name: string;
+  email: string;
+  attending: string;
+  number_of_guests: number;
+  confirmation_code: string;
+  submitted_at: string;
+}
+
 function AppContent() {
-  const [guests, setGuests] = useState<any[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [showConfetti, setShowConfetti] = useState(true);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [musicReady, setMusicReady] = useState(false);
@@ -35,7 +45,7 @@ function AppContent() {
       try {
         const response = await fetch('https://darius-birthday-party.onrender.com/api/guests');
         const data = await response.json();
-        setGuests(data.filter(guest => guest.attending === 'yes'));
+        setGuests(data.filter((guest: Guest) => guest.attending === 'yes'));
       } catch (error) {
         console.error('Error fetching guests:', error);
       }
@@ -126,13 +136,13 @@ function AppContent() {
     }
   };
 
-  const handleAddGuest = async (name: string) => {
+  const handleAddGuest = async () => {
     // This function is now handled by RSVPForm when submitting to backend
     // Refresh the guest list after new RSVP
     try {
       const response = await fetch('https://darius-birthday-party.onrender.com/api/guests');
       const data = await response.json();
-      setGuests(data.filter(guest => guest.attending === 'yes'));
+      setGuests(data.filter((guest: Guest) => guest.attending === 'yes'));
     } catch (error) {
       console.error('Error refreshing guests:', error);
     }
@@ -145,7 +155,7 @@ function AppContent() {
     if (!confirmClear) return;
 
     try {
-      const response = await fetch('https://darius-birthday-party.onrender.com/api/guests', {
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/clear-guests', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 // src/components/LanguageToggle.tsx
 import React from 'react';
 import { Languages } from 'lucide-react';
-import { useLanguage, Language } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export const LanguageToggle: React.FC = () => {
   const { language, setLanguage } = useLanguage();

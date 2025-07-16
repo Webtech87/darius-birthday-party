@@ -15,7 +15,7 @@ interface Guest {
 
 interface RSVPFormProps {
   guests: Guest[];
-  onAddGuest: (name: string) => void;
+  onAddGuest: () => void;
   onClearGuests?: () => void;
   isAdmin?: boolean;
   onGuestAdded?: () => void;
@@ -43,7 +43,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
   // Fetch current guests list
   const fetchGuests = async () => {
     try {
-      const response = await fetch('https://darius-birthday-party.onrender.com/api/rsvp');
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/guests');
       if (response.ok) {
         const guestData = await response.json();
         const attendingGuests = guestData.filter((guest: Guest) => guest.attending === 'yes');
@@ -107,7 +107,6 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
 
       if (response.ok) {
         // Success
-        const submittedName = guestName.trim();
         setConfirmationCode(result.confirmation_code);
         setGuestName('');
         setGuestPhone('');
@@ -117,9 +116,9 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
         // Refresh the guests list
         await fetchGuests();
         
-        // Call parent callback with the new guest name
+        // Call parent callback
         if (onAddGuest) {
-          onAddGuest(submittedName);
+          onAddGuest();
         }
         
         // Call additional callback if provided
@@ -166,7 +165,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
     setIsClearingGuests(true);
 
     try {
-      const response = await fetch('https://darius-birthday-party.onrender.com/api/rsvp', {
+      const response = await fetch('https://darius-birthday-party.onrender.com/api/clear-guests', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +188,6 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
           onClearGuests();
         }
       } else {
-        const error = await response.json();
         alert(
           language === 'pt' 
             ? 'Erro ao limpar lista de convidados'

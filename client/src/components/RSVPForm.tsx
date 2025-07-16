@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Trash2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import '../styles/components.css';
 
@@ -14,21 +14,30 @@ interface Guest {
 }
 
 interface RSVPFormProps {
-  guests: string[];
+  guests: Guest[];
   onAddGuest: (name: string) => void;
+  onClearGuests?: () => void;
+  isAdmin?: boolean;
   onGuestAdded?: () => void;
 }
 
-export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestAdded }) => {
+export const RSVPForm: React.FC<RSVPFormProps> = ({ 
+  guests, 
+  onAddGuest, 
+  onClearGuests, 
+  isAdmin = false, 
+  onGuestAdded 
+}) => {
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Add submission guard
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [apiGuests, setApiGuests] = useState<Guest[]>([]);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [showGuestList, setShowGuestList] = useState(false);
+  const [isClearingGuests, setIsClearingGuests] = useState(false);
   const { t, language } = useLanguage();
 
   // Fetch current guests list
@@ -37,7 +46,13 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
       const response = await fetch('http://localhost:5000/api/guests');
       if (response.ok) {
         const guestData = await response.json();
-        setApiGuests(guestData.filter((guest: Guest) => guest.attending === 'yes'));
+        const attendingGuests = guestData.filter((guest: Guest) => guest.attending === 'yes');
+        setApiGuests(attendingGuests);
+        
+        // Show guest list if there are guests
+        if (attendingGuests.length > 0) {
+          setShowGuestList(true);
+        }
       }
     } catch (error) {
       console.error('Error fetching guests:', error);
@@ -48,6 +63,14 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
   useEffect(() => {
     fetchGuests();
   }, []);
+
+  // Update local state when props change
+  useEffect(() => {
+    if (guests && guests.length > 0) {
+      setApiGuests(guests);
+      setShowGuestList(true);
+    }
+  }, [guests]);
 
   const handleSubmit = async () => {
     // Prevent double submission
@@ -61,7 +84,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
     }
 
     setIsLoading(true);
-    setIsSubmitting(true); // Set submission guard
+    setIsSubmitting(true);
     setError('');
 
     try {
@@ -72,7 +95,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
         },
         body: JSON.stringify({
           name: guestName.trim(),
-          email: `${guestPhone.replace(/\s+/g, '')}@phone.temp`, // Generate a temporary email from phone
+          email: `${guestPhone.replace(/\s+/g, '')}@phone.temp`,
           phone: guestPhone.trim(),
           attending: 'yes',
           number_of_guests: 1,
@@ -84,12 +107,12 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
 
       if (response.ok) {
         // Success
-        const submittedName = guestName.trim(); // Store name before clearing
+        const submittedName = guestName.trim();
         setConfirmationCode(result.confirmation_code);
         setGuestName('');
         setGuestPhone('');
         setIsSubmitted(true);
-        setShowGuestList(true); // Show guest list after successful submission
+        setShowGuestList(true);
         
         // Refresh the guests list
         await fetchGuests();
@@ -104,11 +127,10 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
           onGuestAdded();
         }
 
-        // Hide success message after 10 seconds, but keep guest list visible
+        // Hide success message after 10 seconds
         setTimeout(() => {
           setIsSubmitted(false);
           setConfirmationCode('');
-          // Keep showGuestList = true so the list remains visible
         }, 10000);
       } else {
         // Handle errors
@@ -124,10 +146,65 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
       console.error('Error submitting RSVP:', error);
     } finally {
       setIsLoading(false);
-      // Reset submission guard after a short delay to prevent rapid clicking
       setTimeout(() => {
         setIsSubmitting(false);
       }, 1000);
+    }
+  };
+
+  const handleClearGuests = async () => {
+    if (!isAdmin || isClearingGuests) return;
+
+    const confirmClear = window.confirm(
+      language === 'pt' 
+        ? `Tem certeza que deseja remover todos os ${apiGuests.length} convidados? Esta ação não pode ser desfeita.`
+        : `Are you sure you want to remove all ${apiGuests.length} guests? This action cannot be undone.`
+    );
+    
+    if (!confirmClear) return;
+
+    setIsClearingGuests(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/clear-guests', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setApiGuests([]);
+        setShowGuestList(false);
+        
+        alert(
+          language === 'pt' 
+            ? `Lista limpa com sucesso! ${result.deleted_count || 0} convidados removidos.`
+            : `List cleared successfully! ${result.deleted_count || 0} guests removed.`
+        );
+
+        // Call parent callback if provided
+        if (onClearGuests) {
+          onClearGuests();
+        }
+      } else {
+        const error = await response.json();
+        alert(
+          language === 'pt' 
+            ? 'Erro ao limpar lista de convidados'
+            : 'Error clearing guest list'
+        );
+      }
+    } catch (error) {
+      console.error('Error clearing guests:', error);
+      alert(
+        language === 'pt' 
+          ? 'Erro de conexão ao limpar lista'
+          : 'Network error while clearing list'
+      );
+    } finally {
+      setIsClearingGuests(false);
     }
   };
 
@@ -211,14 +288,32 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
         </div>
       )}
 
-      {/* Guest List - Only show after successful submission */}
+      {/* Guest List */}
       {showGuestList && apiGuests.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-xl font-bold text-purple-600 mb-4">
-            {t.partyHeroes} ({apiGuests.length}):
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-purple-600">
+              {t.partyHeroes} ({apiGuests.length}):
+            </h3>
+            
+            {/* Admin Clear Button - Only visible to admin */}
+            {isAdmin && (
+              <button
+                onClick={handleClearGuests}
+                disabled={isClearingGuests}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold disabled:opacity-50"
+                title={language === 'pt' ? 'Limpar toda a lista' : 'Clear entire list'}
+              >
+                <Trash2 size={16} />
+                {isClearingGuests 
+                  ? (language === 'pt' ? 'Limpando...' : 'Clearing...') 
+                  : (language === 'pt' ? 'Limpar Lista' : 'Clear List')
+                }
+              </button>
+            )}
+          </div>
+          
           <div className="max-h-32 overflow-y-auto flex flex-col gap-2">
-            {/* Only display API guests - single source of truth */}
             {apiGuests.map((guest, index) => (
               <div
                 key={guest.id || `api-guest-${index}`}
@@ -227,6 +322,15 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({ guests, onAddGuest, onGuestA
                 🎈 {guest.name}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Debug Info - Only visible to admin */}
+      {isAdmin && (
+        <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+          <div className="text-yellow-800 text-sm">
+            🔧 <strong>Admin Mode Active</strong> - You have access to clear the guest list
           </div>
         </div>
       )}

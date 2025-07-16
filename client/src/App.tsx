@@ -9,13 +9,40 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import './styles/App.css';
 
 function AppContent() {
-  const [guests, setGuests] = useState<string[]>([]);
+  const [guests, setGuests] = useState<any[]>([]);
   const [showConfetti, setShowConfetti] = useState(true);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [musicReady, setMusicReady] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { t } = useLanguage();
+
+  // Check for admin access
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('admin') === 'darius') {
+      setIsAdmin(true);
+      console.log('🔧 Admin mode activated!');
+    } else {
+      console.log('👤 Regular user mode');
+    }
+  }, []);
+
+  // Fetch guests from database
+  useEffect(() => {
+    const fetchGuests = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/guests');
+        const data = await response.json();
+        setGuests(data.filter(guest => guest.attending === 'yes'));
+      } catch (error) {
+        console.error('Error fetching guests:', error);
+      }
+    };
+
+    fetchGuests();
+  }, []);
 
   // Page fade-in effect
   useEffect(() => {
@@ -99,8 +126,44 @@ function AppContent() {
     }
   };
 
-  const handleAddGuest = (name: string) => {
-    setGuests([...guests, name]);
+  const handleAddGuest = async (name: string) => {
+    // This function is now handled by RSVPForm when submitting to backend
+    // Refresh the guest list after new RSVP
+    try {
+      const response = await fetch('http://localhost:5000/api/guests');
+      const data = await response.json();
+      setGuests(data.filter(guest => guest.attending === 'yes'));
+    } catch (error) {
+      console.error('Error refreshing guests:', error);
+    }
+  };
+
+  const handleClearGuests = async () => {
+    if (!isAdmin) return;
+    
+    const confirmClear = window.confirm(`Are you sure you want to clear all ${guests.length} guests? This cannot be undone.`);
+    if (!confirmClear) return;
+
+    try {
+      const response = await fetch('http://localhost:5000/api/clear-guests', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setGuests([]);
+        alert(`Guest list cleared successfully! ${result.deleted_count || 0} guests removed.`);
+      } else {
+        const errorData = await response.json();
+        alert(`Error clearing guest list: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error clearing guests:', error);
+      alert('Network error while clearing guest list');
+    }
   };
 
   const confettiColors = ['bg-red-500', 'bg-blue-500', 'bg-yellow-500', 'bg-green-500', 'bg-pink-500', 'bg-purple-500'];
@@ -118,14 +181,13 @@ function AppContent() {
     >
       {/* Language Toggle */}
       <div 
-        className={`transition-all duration-[1000ms] ease-out ${
+        className={`transition-opacity transition-transform duration-[1000ms] ease-out ${
           isLoaded 
             ? 'opacity-100 translate-y-0' 
             : 'opacity-0 translate-y-4'
         }`}
         style={{
-          transitionDelay: isLoaded ? '200ms' : '0ms',
-          transition: 'opacity 1s ease-out, transform 1s ease-out'
+          transitionDelay: isLoaded ? '200ms' : '0ms'
         }}
       >
         <LanguageToggle />
@@ -152,7 +214,7 @@ function AppContent() {
       {musicReady && (
         <button
           onClick={toggleMusic}
-          className={`music-control-btn transition-all duration-[1000ms] ease-out ${
+          className={`music-control-btn transition-opacity transition-transform duration-[1000ms] ease-out ${
             isLoaded 
               ? 'opacity-80 translate-y-0' 
               : 'opacity-0 translate-y-4'
@@ -174,8 +236,7 @@ function AppContent() {
             justifyContent: 'center',
             cursor: 'pointer',
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            transitionDelay: isLoaded ? '300ms' : '0ms',
-            transition: 'all 0.3s ease, opacity 1s ease-out, transform 1s ease-out'
+            transitionDelay: isLoaded ? '300ms' : '0ms'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = '1';
@@ -209,14 +270,13 @@ function AppContent() {
 
       {/* Floating Icons */}
       <div 
-        className={`transition-all duration-[1000ms] ease-out ${
+        className={`transition-opacity transition-transform duration-[1000ms] ease-out ${
           isLoaded 
             ? 'opacity-100 translate-y-0' 
             : 'opacity-0 translate-y-4'
         }`}
         style={{
-          transitionDelay: isLoaded ? '400ms' : '0ms',
-          transition: 'opacity 1s ease-out, transform 1s ease-out'
+          transitionDelay: isLoaded ? '400ms' : '0ms'
         }}
       >
         <FloatingIcon icon={Star} delay={0.5} position="top-10 left-10" />
@@ -228,14 +288,13 @@ function AppContent() {
       <div className="container py-8 relative z-20">
         {/* Header */}
         <div 
-          className={`main-header transition-all duration-[1000ms] ease-out ${
+          className={`main-header transition-opacity transition-transform duration-[1000ms] ease-out ${
             isLoaded 
               ? 'opacity-100 translate-y-0' 
               : 'opacity-0 translate-y-6'
           }`}
           style={{
-            transitionDelay: isLoaded ? '500ms' : '0ms',
-            transition: 'opacity 1s ease-out, transform 1s ease-out'
+            transitionDelay: isLoaded ? '500ms' : '0ms'
           }}
         >
           <div>
@@ -247,30 +306,42 @@ function AppContent() {
 
         {/* Main Content Grid */}
         <div 
-          className={`content-grid transition-all duration-[1000ms] ease-out ${
+          className={`content-grid transition-opacity transition-transform duration-[1000ms] ease-out ${
             isLoaded 
               ? 'opacity-100 translate-y-0' 
               : 'opacity-0 translate-y-6'
           }`}
           style={{
-            transitionDelay: isLoaded ? '700ms' : '0ms',
-            transition: 'opacity 1s ease-out, transform 1s ease-out'
+            transitionDelay: isLoaded ? '700ms' : '0ms'
           }}
         >
           <PartyDetails />
-          <RSVPForm guests={guests} onAddGuest={handleAddGuest} />
+          <RSVPForm 
+            guests={guests} 
+            onAddGuest={handleAddGuest} 
+            onClearGuests={isAdmin ? handleClearGuests : undefined}
+            isAdmin={isAdmin}
+          />
+          
+          {/* Admin Debug Info */}
+          {isAdmin && (
+            <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+              <div className="text-red-800 font-bold">
+                🔧 Admin Mode: Active | Guests: {guests.length} | Clear Function: {isAdmin ? 'Available' : 'Not Available'}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Special Message */}
         <div 
-          className={`text-center mt-12 transition-all duration-[1000ms] ease-out ${
+          className={`text-center mt-12 transition-opacity transition-transform duration-[1000ms] ease-out ${
             isLoaded 
               ? 'opacity-100 translate-y-0' 
               : 'opacity-0 translate-y-6'
           }`}
           style={{
-            transitionDelay: isLoaded ? '900ms' : '0ms',
-            transition: 'opacity 1s ease-out, transform 1s ease-out'
+            transitionDelay: isLoaded ? '900ms' : '0ms'
           }}
         >
           <div className="message-box">

@@ -320,6 +320,28 @@ def get_guests():
     guests = RSVP.query.filter_by(party_id=party.id).order_by(RSVP.submitted_at.desc()).all()
     return jsonify([guest.to_dict() for guest in guests])
 
+@app.route('/api/clear-guests', methods=['DELETE'])
+def clear_guests():
+    try:
+        party = Party.query.filter_by(is_active=True).first()
+        if not party:
+            return jsonify({'error': 'Festa não encontrada'}), 404
+        
+        # Delete all RSVP records for this party
+        deleted_count = RSVP.query.filter_by(party_id=party.id).delete()
+        db.session.commit()
+        
+        print(f"✅ {deleted_count} convidados removidos da lista")
+        return jsonify({
+            'message': f'Lista de convidados limpa com sucesso. {deleted_count} registros removidos.',
+            'deleted_count': deleted_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erro ao limpar lista: {e}")
+        return jsonify({'error': f'Falha ao limpar lista de convidados: {str(e)}'}), 500
+
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):

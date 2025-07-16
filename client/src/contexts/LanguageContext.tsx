@@ -55,7 +55,7 @@ const translations: Record<Language, Translations> = {
     
     // PartyDetails.tsx
     partyDetails: "Party Details",
-    dateText: "Saturday, July 27th at 5:00 PM",
+    dateText: "Saturday, July 26th at 5:00 PM",
     dateSubtext: "Don't miss the fun!",
     timeText: "Starting at 5:00 PM",
     timeSubtext: "Come and celebrate with us!",
@@ -94,7 +94,7 @@ const translations: Record<Language, Translations> = {
     
     // PartyDetails.tsx
     partyDetails: "Detalhes da Festa",
-    dateText: "Sábado 27 de julho às 17 horas",
+    dateText: "Sábado 26 de julho às 17 horas",
     dateSubtext: "Não perca a diversão!",
     timeText: "Começando às 17 horas",
     timeSubtext: "Venha celebrar conosco!",

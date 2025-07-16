@@ -46,7 +46,7 @@ interface Translations {
 const translations: Record<Language, Translations> = {
   en: {
     // App.tsx
-    mainTitle: "🎉 DARIUS IS 4!",
+    mainTitle: "🎉 Churrasquinho do Dede!",
     specialMessageTitle: "🎂 Special Birthday Message 🎂",
     specialMessage: "Join us as we celebrate our amazing Darius turning 4! It's going to be an unforgettable day filled with laughter, games, delicious food, and so much fun. Bring your swimsuit, your appetite, and get ready to party!",
     musicPause: "Pause music",
@@ -55,12 +55,12 @@ const translations: Record<Language, Translations> = {
     
     // PartyDetails.tsx
     partyDetails: "Party Details",
-    dateText: "Saturday, July 27th",
+    dateText: "Saturday, July 27th at 5:00 PM",
     dateSubtext: "Don't miss the fun!",
-    timeText: "All Day Fun!",
-    timeSubtext: "Come whenever you can",
-    locationText: "Our House",
-    locationSubtext: "The best party spot!",
+    timeText: "Starting at 5:00 PM",
+    timeSubtext: "Come and celebrate with us!",
+    locationText: "Urbanização Quinta do Eucalipto nº4",
+    locationSubtext: "8005-227 Faro",
     activitiesTitle: "🎪 What We'll Have:",
     grilledFood: "🍖 Grilled Food",
     poolFun: "🏊‍♂️ Pool Fun",
@@ -85,7 +85,7 @@ const translations: Record<Language, Translations> = {
   },
   pt: {
     // App.tsx
-    mainTitle: "🎉 DARIUS FAZ 4 ANOS!",
+    mainTitle: "🎉 Churrasquinho do Dede!",
     specialMessageTitle: "🎂 Mensagem Especial de Aniversário 🎂",
     specialMessage: "Junte-se a nós para celebrar o nosso incrível Darius que está fazendo 4 anos! Vai ser um dia inesquecível cheio de risos, jogos, comida deliciosa e muita diversão. Traga o seu fato de banho, o seu apetite e prepare-se para a festa!",
     musicPause: "Pausar música",
@@ -94,12 +94,12 @@ const translations: Record<Language, Translations> = {
     
     // PartyDetails.tsx
     partyDetails: "Detalhes da Festa",
-    dateText: "Sábado, 27 de Julho",
+    dateText: "Sábado 27 de julho às 17 horas",
     dateSubtext: "Não perca a diversão!",
-    timeText: "Diversão o Dia Todo!",
-    timeSubtext: "Venha quando puder",
-    locationText: "Nossa Casa",
-    locationSubtext: "O melhor lugar para a festa!",
+    timeText: "Começando às 17 horas",
+    timeSubtext: "Venha celebrar conosco!",
+    locationText: "Urbanização Quinta do Eucalipto nº4",
+    locationSubtext: "8005-227 Faro",
     activitiesTitle: "🎪 O Que Teremos:",
     grilledFood: "🍖 Comida Grelhada",
     poolFun: "🏊‍♂️ Diversão na Piscina",

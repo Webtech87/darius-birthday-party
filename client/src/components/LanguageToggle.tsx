@@ -51,7 +51,7 @@ export const LanguageToggle: React.FC = () => {
         <span style={{ 
           opacity: language === 'en' ? 1 : 0.5,
           transition: 'opacity 0.3s ease',
-          fontSize: '14px'
+          fontSize: '11px'
         }}>🇺🇸</span>
         <span style={{ fontSize: '10px', opacity: 0.7 }}>|</span>
         <span style={{ 

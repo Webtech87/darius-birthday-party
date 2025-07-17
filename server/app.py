@@ -32,15 +32,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
-CORS(app, 
-     origins=[
-         'http://localhost:5173',
-         'https://darius-birthday-party-frontend.onrender.com',
-         'https://dariussantiago.eu',
-         'https://www.dariussantiago.eu'
-     ],
-     allow_headers=['Content-Type', 'Authorization'],
-     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+CORS(app, origins=['http://localhost:5173'])
 
 # Models
 class Party(db.Model):

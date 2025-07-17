@@ -56,12 +56,11 @@ function AppContent() {
 
   // Page fade-in effect
   useEffect(() => {
-    // Ensure the page starts hidden
     setIsLoaded(false);
     
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 300); // Increased delay to ensure smooth transition
+    }, 300);
     
     return () => clearTimeout(timer);
   }, []);
@@ -75,50 +74,46 @@ function AppContent() {
   useEffect(() => {
     const startMusic = async () => {
       if (audioRef.current) {
-        // Set volume programmatically
         audioRef.current.volume = 0.6;
         
         try {
-          // Try to play immediately
           await audioRef.current.play();
           setIsMusicPlaying(true);
           setMusicReady(true);
         } catch (error) {
-          // If autoplay is blocked, wait for user interaction
           console.log("Autoplay blocked, waiting for user interaction");
           setMusicReady(true);
           
-          // Add event listener for any user interaction
           const playOnInteraction = async () => {
             try {
               await audioRef.current?.play();
               setIsMusicPlaying(true);
-              // Remove event listeners after successful play
               document.removeEventListener('click', playOnInteraction);
               document.removeEventListener('keydown', playOnInteraction);
               document.removeEventListener('scroll', playOnInteraction);
+              document.removeEventListener('touchstart', playOnInteraction);
             } catch (err) {
               console.log("Still unable to play audio");
             }
           };
 
-          // Listen for any user interaction
+          // Listen for any user interaction including touch
           document.addEventListener('click', playOnInteraction);
           document.addEventListener('keydown', playOnInteraction);
           document.addEventListener('scroll', playOnInteraction);
+          document.addEventListener('touchstart', playOnInteraction);
           
-          // Cleanup listeners after 30 seconds
           setTimeout(() => {
             document.removeEventListener('click', playOnInteraction);
             document.removeEventListener('keydown', playOnInteraction);
             document.removeEventListener('scroll', playOnInteraction);
+            document.removeEventListener('touchstart', playOnInteraction);
           }, 30000);
         }
       }
     };
 
-    // Small delay to ensure component is fully mounted
-    const musicTimer = setTimeout(startMusic, 1000); // Increased delay to work with fade-in
+    const musicTimer = setTimeout(startMusic, 1000);
     
     return () => clearTimeout(musicTimer);
   }, []);
@@ -137,8 +132,6 @@ function AppContent() {
   };
 
   const handleAddGuest = async () => {
-    // This function is now handled by RSVPForm when submitting to backend
-    // Refresh the guest list after new RSVP
     try {
       const response = await fetch('https://darius-birthday-party.onrender.com/api/guests');
       const data = await response.json();
@@ -189,7 +182,7 @@ function AppContent() {
         transition: 'opacity 1.2s ease-out, transform 1.2s ease-out'
       }}
     >
-      {/* Language Toggle */}
+      {/* Language Toggle - Higher z-index to avoid conflicts */}
       <div 
         className={`transition-opacity transition-transform duration-[1000ms] ease-out ${
           isLoaded 
@@ -197,7 +190,9 @@ function AppContent() {
             : 'opacity-0 translate-y-4'
         }`}
         style={{
-          transitionDelay: isLoaded ? '200ms' : '0ms'
+          transitionDelay: isLoaded ? '200ms' : '0ms',
+          zIndex: 9999, // Ensure it's above everything
+          position: 'relative'
         }}
       >
         <LanguageToggle />
@@ -213,14 +208,13 @@ function AppContent() {
         onPause={() => setIsMusicPlaying(false)}
         style={{ display: 'none' }}
       >
-        {/* Add your music file to the public folder */}
         <source src="/birthday-music.mp3" type="audio/mpeg" />
         <source src="/birthday-music.ogg" type="audio/ogg" />
         <source src="/birthday-music.wav" type="audio/wav" />
         {t.audioNotSupported}
       </audio>
 
-      {/* Subtle Music Control Button (appears only when music is ready) */}
+      {/* Music Control Button - Improved mobile support */}
       {musicReady && (
         <button
           onClick={toggleMusic}
@@ -234,7 +228,7 @@ function AppContent() {
             position: 'fixed',
             top: '10px',
             right: '10px',
-            zIndex: 1000,
+            zIndex: 9998, // Just below language toggle
             background: 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(10px)',
             border: 'none',
@@ -246,7 +240,11 @@ function AppContent() {
             justifyContent: 'center',
             cursor: 'pointer',
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-            transitionDelay: isLoaded ? '300ms' : '0ms'
+            transitionDelay: isLoaded ? '300ms' : '0ms',
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTapHighlightColor: 'transparent'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = '1';
@@ -255,6 +253,14 @@ function AppContent() {
           onMouseLeave={(e) => {
             e.currentTarget.style.opacity = '0.8';
             e.currentTarget.style.transform = 'scale(1)';
+          }}
+          onTouchStart={(e) => {
+            e.currentTarget.style.transform = 'scale(0.95)';
+          }}
+          onTouchEnd={(e) => {
+            setTimeout(() => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }, 150);
           }}
         >
           {isMusicPlaying ? (
@@ -272,13 +278,13 @@ function AppContent() {
             <ConfettiPiece
               key={i}
               color={confettiColors[i % confettiColors.length]}
-              delay={i * 0.1 + 0.5} // Added extra delay for fade-in
+              delay={i * 0.1 + 0.5}
             />
           ))}
         </div>
       )}
 
-      {/* Floating Icons */}
+      {/* Floating Icons - Repositioned to avoid conflicts */}
       <div 
         className={`transition-opacity transition-transform duration-[1000ms] ease-out ${
           isLoaded 
@@ -286,11 +292,13 @@ function AppContent() {
             : 'opacity-0 translate-y-4'
         }`}
         style={{
-          transitionDelay: isLoaded ? '400ms' : '0ms'
+          transitionDelay: isLoaded ? '400ms' : '0ms',
+          zIndex: 5 // Lower than controls
         }}
       >
-        <FloatingIcon icon={Star} delay={0.5} position="top-10 left-10" />
-        <FloatingIcon icon={Gift} delay={1.5} position="top-20 right-20" />
+        {/* Moved away from top-left corner to avoid language toggle conflict */}
+        <FloatingIcon icon={Star} delay={0.5} position="top-24 left-16" />
+        <FloatingIcon icon={Gift} delay={1.5} position="top-20 right-24" />
         <FloatingIcon icon={Sparkles} delay={2.5} position="bottom-20 left-20" />
         <FloatingIcon icon={Music} delay={2} position="top-40 left-1/3" />
       </div>

@@ -170,7 +170,7 @@ def send_notification_email(new_guest_name, all_guests):
                 <div style="margin-top: 30px; padding: 15px; background-color: #e8f4f8; border-radius: 8px;">
                     <p style="margin: 0; color: #0c63e4;">
                         <strong>🎊 Detalhes da Festa:</strong><br>
-                        📅 27 de Julho, 2024 às 17:00<br>
+                        📅 26 de Julho, 2024 às 17:00<br>
                         📍 Urbanização Quinta do Eucalipto nº4, 8005-227 Faro<br>
                         👥 Total de Convidados: """ + str(len(all_guests)) + """
                     </p>

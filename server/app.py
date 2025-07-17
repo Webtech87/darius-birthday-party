@@ -32,12 +32,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
-CORS(app, origins=[
-    'http://localhost:5173',  # Development
-    'https://darius-birthday-party-frontend.onrender.com',  # Render domain
-    'https://dariussantiago.eu',  # Your custom domain
-    'https://www.dariussantiago.eu'  # WWW version
-])
+CORS(app, origins=['http://localhost:5173'])
 
 # Models
 class Party(db.Model):
@@ -346,6 +341,47 @@ def clear_guests():
         db.session.rollback()
         print(f"❌ Erro ao limpar lista: {e}")
         return jsonify({'error': f'Falha ao limpar lista de convidados: {str(e)}'}), 500
+
+@app.route('/api/test-email', methods=['GET'])
+def test_email():
+    """Test email configuration"""
+    try:
+        notification_email = os.getenv('NOTIFICATION_EMAIL')
+        mail_username = os.getenv('MAIL_USERNAME')
+        mail_password = os.getenv('MAIL_PASSWORD')
+        
+        print(f"🔧 Testing email configuration:")
+        print(f"📧 MAIL_USERNAME: {mail_username}")
+        print(f"📧 NOTIFICATION_EMAIL: {notification_email}")
+        print(f"🔑 MAIL_PASSWORD: {'SET' if mail_password else 'NOT SET'}")
+        
+        if not notification_email:
+            return jsonify({'error': 'NOTIFICATION_EMAIL not configured'}), 400
+        
+        if not mail_username or not mail_password:
+            return jsonify({'error': 'MAIL_USERNAME or MAIL_PASSWORD not configured'}), 400
+            
+        msg = Message(
+            subject="🎉 Test Email from Birthday Party App",
+            recipients=[notification_email],
+            body="This is a test email from your birthday party app. If you receive this, email is working correctly!",
+            sender=mail_username
+        )
+        
+        print(f"📤 Attempting to send test email to: {notification_email}")
+        mail.send(msg)
+        print(f"✅ Test email sent successfully!")
+        
+        return jsonify({
+            'message': 'Test email sent successfully',
+            'sent_to': notification_email,
+            'from': mail_username
+        }), 200
+        
+    except Exception as e:
+        error_msg = f'Failed to send test email: {str(e)}'
+        print(f"❌ {error_msg}")
+        return jsonify({'error': error_msg}), 500
 
 # Error handlers
 @app.errorhandler(404)

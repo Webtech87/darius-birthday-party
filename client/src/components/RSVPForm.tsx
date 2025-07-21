@@ -40,6 +40,12 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
   const [isClearingGuests, setIsClearingGuests] = useState(false);
   const { t, language } = useLanguage();
 
+  // Check if current user is admin based on URL params
+  const isAdminMode = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('admin') === 'darius' || isAdmin;
+  };
+
   // Fetch current guests list
   const fetchGuests = async () => {
     try {
@@ -49,8 +55,8 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
         const attendingGuests = guestData.filter((guest: Guest) => guest.attending === 'yes');
         setApiGuests(attendingGuests);
         
-        // Show guest list if there are guests
-        if (attendingGuests.length > 0) {
+        // Show guest list ONLY if admin mode is active
+        if (attendingGuests.length > 0 && isAdminMode()) {
           setShowGuestList(true);
         }
       }
@@ -68,7 +74,8 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
   useEffect(() => {
     if (guests && guests.length > 0) {
       setApiGuests(guests);
-      setShowGuestList(true);
+      // Only show guest list in admin mode
+      setShowGuestList(isAdminMode());
     }
   }, [guests]);
 
@@ -111,7 +118,11 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
         setGuestName('');
         setGuestPhone('');
         setIsSubmitted(true);
-        setShowGuestList(true);
+        
+        // Only show guest list in admin mode after adding
+        if (isAdminMode()) {
+          setShowGuestList(true);
+        }
         
         // Refresh the guests list
         await fetchGuests();
@@ -152,7 +163,7 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
   };
 
   const handleClearGuests = async () => {
-    if (!isAdmin || isClearingGuests) return;
+    if (!isAdminMode() || isClearingGuests) return;
 
     const confirmClear = window.confirm(
       language === 'pt' 
@@ -286,8 +297,8 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
         </div>
       )}
 
-      {/* Guest List */}
-      {showGuestList && apiGuests.length > 0 && (
+      {/* Guest List - ONLY VISIBLE TO ADMIN */}
+      {showGuestList && apiGuests.length > 0 && isAdminMode() && (
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-purple-600">
@@ -295,20 +306,18 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
             </h3>
             
             {/* Admin Clear Button - Only visible to admin */}
-            {isAdmin && (
-              <button
-                onClick={handleClearGuests}
-                disabled={isClearingGuests}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold disabled:opacity-50"
-                title={language === 'pt' ? 'Limpar toda a lista' : 'Clear entire list'}
-              >
-                <Trash2 size={16} />
-                {isClearingGuests 
-                  ? (language === 'pt' ? 'Limpando...' : 'Clearing...') 
-                  : (language === 'pt' ? 'Limpar Lista' : 'Clear List')
-                }
-              </button>
-            )}
+            <button
+              onClick={handleClearGuests}
+              disabled={isClearingGuests}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold disabled:opacity-50"
+              title={language === 'pt' ? 'Limpar toda a lista' : 'Clear entire list'}
+            >
+              <Trash2 size={16} />
+              {isClearingGuests 
+                ? (language === 'pt' ? 'Limpando...' : 'Clearing...') 
+                : (language === 'pt' ? 'Limpar Lista' : 'Clear List')
+              }
+            </button>
           </div>
           
           <div className="max-h-32 overflow-y-auto flex flex-col gap-2">
@@ -325,10 +334,10 @@ export const RSVPForm: React.FC<RSVPFormProps> = ({
       )}
 
       {/* Admin Debug Info - Only visible to admin */}
-      {isAdmin && (
+      {isAdminMode() && (
         <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
           <div className="text-yellow-800 text-sm">
-            🔧 <strong>Admin Mode Active</strong> - You have access to clear the guest list
+            🔧 <strong>Admin Mode Active</strong> - You can see the guest list and manage guests
           </div>
         </div>
       )}

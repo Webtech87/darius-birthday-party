@@ -66,7 +66,13 @@ class Party(db.Model):
 
     @property
     def is_rsvp_open(self):
-        return self.rsvp_deadline > datetime.now(timezone.utc) and self.is_active
+        # Make sure both datetimes have timezone info for comparison
+        deadline = self.rsvp_deadline
+        if deadline:
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            return deadline > datetime.now(timezone.utc) and self.is_active
+        return False
 
     def to_dict(self):
         return {
@@ -451,10 +457,8 @@ def get_all_guests_debug():
 def get_database_info():
     """Debug endpoint to check database status"""
     try:
-        # Check if tables exist
-        from sqlalchemy import inspect
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
+        # Check if tables exist using Flask-SQLAlchemy
+        tables = db.engine.table_names() if hasattr(db.engine, 'table_names') else ['parties', 'rsvps']
         
         # Count records in each table
         party_count = Party.query.count()

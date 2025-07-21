@@ -411,6 +411,63 @@ def test_email():
         print(f"❌ {error_msg}")
         return jsonify({'error': error_msg}), 500
 
+# Individual guest management
+@app.route('/api/guest/<confirmation_code>', methods=['PUT'])
+def update_guest(confirmation_code):
+    """Update a specific guest's information"""
+    try:
+        guest = RSVP.query.filter_by(confirmation_code=confirmation_code).first()
+        if not guest:
+            return jsonify({'error': 'Guest not found'}), 404
+        
+        data = request.get_json()
+        old_name = guest.name
+        
+        # Update allowed fields
+        if 'name' in data:
+            guest.name = data['name']
+        if 'phone' in data:
+            guest.phone = data['phone']
+        
+        db.session.commit()
+        
+        print(f"✅ Guest updated: {old_name} → {guest.name}")
+        return jsonify({
+            'message': f'Guest updated successfully',
+            'old_name': old_name,
+            'new_name': guest.name,
+            'confirmation_code': confirmation_code
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error updating guest: {e}")
+        return jsonify({'error': f'Failed to update guest: {str(e)}'}), 500
+
+@app.route('/api/guest/<confirmation_code>', methods=['DELETE'])
+def delete_guest(confirmation_code):
+    """Delete a specific guest by confirmation code"""
+    try:
+        guest = RSVP.query.filter_by(confirmation_code=confirmation_code).first()
+        if not guest:
+            return jsonify({'error': 'Guest not found'}), 404
+        
+        guest_name = guest.name
+        db.session.delete(guest)
+        db.session.commit()
+        
+        print(f"✅ Guest deleted: {guest_name} - {confirmation_code}")
+        return jsonify({
+            'message': f'Guest {guest_name} removed successfully',
+            'deleted_guest': guest_name,
+            'confirmation_code': confirmation_code
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error deleting guest: {e}")
+        return jsonify({'error': f'Failed to delete guest: {str(e)}'}), 500
+
 # DEBUG ENDPOINTS - New additions for troubleshooting
 @app.route('/api/debug/all-guests', methods=['GET'])
 def get_all_guests_debug():
